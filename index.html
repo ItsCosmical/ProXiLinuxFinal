@@ -2,55 +2,79 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>teeny proxi</title>
+    <title>GitHub VM - Debug Mode</title>
     <script src="libv86.js"></script>
     <style>
-        body { margin: 0; background: #000; color: #fff; font-family: monospace; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; overflow: hidden; }
-        #loader { text-align: center; width: 300px; z-index: 10; }
-        progress { width: 100%; height: 20px; margin-top: 10px; }
-        #screen { white-space: pre; font-size: 14px; line-height: 14px; }
+        body { margin: 0; background: #000; color: #fff; font-family: monospace; overflow: hidden; }
+        #screen { height: 70vh; white-space: pre; border-bottom: 2px solid #333; }
+        
+        /* The Fake Console */
+        #debug-console { 
+            height: 30vh; background: #111; color: #0f0; 
+            padding: 10px; overflow-y: auto; font-size: 12px;
+        }
+        .log-entry { margin-bottom: 4px; border-left: 3px solid #0f0; padding-left: 8px; }
+        .error { color: #f00; border-color: #f00; }
     </style>
 </head>
 <body>
 
-    <div id="loader">
-        <div id="status">Bypassing school filters...</div>
-        <progress id="load-progress" value="0" max="100"></progress>
-    </div>
-
+    <!-- Main VM Display -->
     <div id="screen"></div>
 
+    <!-- Fake Debug Console -->
+    <div id="debug-console">
+        <div class="log-entry">--- Debugger Initialized ---</div>
+    </div>
+
     <script>
+        // Helper to print to our fake console
+        function debugLog(msg, isError = false) {
+            const consoleDiv = document.getElementById("debug-console");
+            const entry = document.createElement("div");
+            entry.className = isError ? "log-entry error" : "log-entry";
+            entry.innerText = "[" + new Date().toLocaleTimeString() + "] " + msg;
+            consoleDiv.appendChild(entry);
+            consoleDiv.scrollTop = consoleDiv.scrollHeight; // Auto-scroll
+        }
+
         window.onload = function() {
-            var progressBar = document.getElementById("load-progress");
-            var statusText = document.getElementById("status");
-            var loaderDiv = document.getElementById("loader");
+            debugLog("Starting VM Engine...");
 
-            var emulator = new V86Starter({
-                wasm_path: "./v86.wasm",
-                memory_size: 256 * 1024 * 1024, // 256MB is plenty for Tiny Core
-                vga_memory_size: 8 * 1024 * 1024,
-                screen_container: document.getElementById("screen"),
-                bios: { url: "./bios/seabios.bin" },
-                vga_bios: { url: "./bios/vgabios.bin" },
-                
-                // Ensure this filename matches EXACTLY what you uploaded
-                cdrom: { url: "./TinyCore-current.iso" }, 
-                
-                autostart: true,
-            });
+            try {
+                var emulator = new V86Starter({
+                    wasm_path: "./v86.wasm",
+                    memory_size: 256 * 1024 * 1024,
+                    screen_container: document.getElementById("screen"),
+                    bios: { url: "./bios/seabios.bin" },
+                    vga_bios: { url: "./bios/vgabios.bin" },
+                    cdrom: { url: "./TinyCore-current.iso" }, 
+                    autostart: true,
+                });
 
-            emulator.add_listener("download-progress", function(e) {
-                if (e.total) {
-                    var percent = (e.loaded / e.total) * 100;
-                    progressBar.value = percent;
-                    statusText.innerText = "Loading OS: " + Math.round(percent) + "%";
-                }
-            });
+                debugLog("Loading TinyCore-current.iso...");
 
-            emulator.add_listener("emulator-started", function() {
-                loaderDiv.style.display = "none";
-            });
+                // Monitor Download
+                emulator.add_listener("download-progress", function(e) {
+                    if (e.total) {
+                        let pct = Math.round((e.loaded / e.total) * 100);
+                        if (pct % 25 === 0) debugLog("ISO Download: " + pct + "%");
+                    }
+                });
+
+                // Monitor Boot Start
+                emulator.add_listener("emulator-started", function() {
+                    debugLog("Engine started! Booting Linux...");
+                });
+
+                // Catch Errors
+                window.onerror = function(msg) {
+                    debugLog("SYSTEM ERROR: " + msg, true);
+                };
+
+            } catch (e) {
+                debugLog("FATAL ERROR: " + e.message, true);
+            }
         };
     </script>
 </body>
