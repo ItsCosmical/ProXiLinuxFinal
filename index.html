@@ -1,21 +1,35 @@
-<!-- Use the CDN links instead of local files -->
-<script src="https://cdn.jsdelivr.net"></script>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>My GitHub Chrome VM</title>
+    <!-- Pointing to the libv86.js you just uploaded to your repo -->
+    <script src="libv86.js"></script>
+</head>
+<body style="margin:0; background:#000;">
+    <div id="screen" style="white-space: pre; font-family: monospace; color: #fff;"></div>
 
-<script>
-    window.onload = function() {
-        var emulator = new V86Starter({
-            // Path to the WASM file on the CDN
-            wasm_path: "https://cdn.jsdelivr.net",
-            memory_size: 512 * 1024 * 1024,
-            vga_memory_size: 8 * 1024 * 1024,
-            screen_container: document.getElementById("screen"),
-            
-            // You still need these BIOS files in your repo's /bios/ folder
-            bios: { url: "bios/seabios.bin" },
-            vga_bios: { url: "bios/vgabios.bin" },
-            
-            cdrom: { url: "https://dl-cdn.alpinelinux.org/v3.23/releases/x86/alpine-virt-3.23.0-x86.iso" }, 
-            autostart: true,
-        });
-    };
-</script>
+    <script>
+        window.onload = function() {
+            var emulator = new V86Starter({
+                // Pointing to the v86.wasm in your repo
+                wasm_path: "v86.wasm",
+                memory_size: 512 * 1024 * 1024,
+                vga_memory_size: 8 * 1024 * 1024,
+                screen_container: document.getElementById("screen"),
+                
+                // Pointing to your local bios folder
+                bios: { url: "bios/seabios.bin" },
+                vga_bios: { url: "bios/vgabios.bin" },
+                
+                // Your working Alpine Linux link
+                cdrom: { 
+                    url: "https://dl-cdn.alpinelinux.org/v3.23/releases/x86/alpine-virt-3.23.0-x86.iso" 
+                }, 
+                
+                autostart: true,
+            });
+        };
+    </script>
+</body>
+</html>
