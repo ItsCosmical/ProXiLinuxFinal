@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>GitHub Chrome VM - Alpine 3.23</title>
+    <!-- Ensure libv86.js is uploaded to your GitHub repo -->
+    <script src="libv86.js"></script>
+</head>
+<body style="margin:0; background-color:#000; overflow:hidden;">
+    <!-- This div will contain the VM screen -->
+    <div id="screen_container">
+        <div id="screen" style="white-space: pre; font-family: 'Courier New', Courier, monospace; font-size: 14px; line-height: 14px;"></div>
+        <canvas style="display: none"></canvas>
+    </div>
+
+    <script>
+        window.onload = function() {
+            var emulator = new V86Starter({
+                wasm_path: "v86.wasm", // Ensure v86.wasm is uploaded to your GitHub repo
+                memory_size: 512 * 1024 * 1024, // 512MB RAM
+                vga_memory_size: 8 * 1024 * 1024,
+                screen_container: document.getElementById("screen"),
+                
+                // BIOS files (usually in a 'bios' folder in your repo)
+                bios: { url: "bios/seabios.bin" },
+                vga_bios: { url: "bios/vgabios.bin" },
+                
+                // Your working ISO link
+                cdrom: { 
+                    url: "https://dl-cdn.alpinelinux.org/alpine/v3.23/releases/x86/alpine-virt-3.23.0-x86.iso" 
+                }, 
+                
+                autostart: true,
+            });
+        };
+    </script>
+</body>
+</html>
